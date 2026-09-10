@@ -297,12 +297,44 @@
     }
 
     /* ==========================================================================
-       4. Chat View Styles (#tab-chat)
+       4. Chat View Styles (#tab-chat) & Enhanced Interactions
        ========================================================================== */
     #tab-chat {
       display: flex;
       flex-direction: column;
       height: 100%;
+    }
+
+    /* 날짜 구분선 (Date Divider) */
+    .chat-date-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 14px 0 6px 0;
+      position: relative;
+    }
+
+    .chat-date-divider::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background-color: #E2E8F0;
+      z-index: 1;
+    }
+
+    .chat-date-divider span {
+      position: relative;
+      z-index: 2;
+      background-color: #F1F5F9;
+      color: #64748B;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
     }
 
     /* Chat Messages Area */
@@ -312,13 +344,14 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
 
     .chat-message-group {
       display: flex;
       gap: 10px;
-      max-width: 70%;
+      max-width: 75%;
+      position: relative;
     }
 
     /* 상대방 메시지 (좌측 정렬) */
@@ -354,6 +387,7 @@
       display: flex;
       align-items: flex-end;
       gap: 6px;
+      position: relative;
     }
 
     .chat-message-group.opponent .message-body-row {
@@ -364,16 +398,40 @@
       flex-direction: row-reverse;
     }
 
+    .message-bubble-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+
     .message-bubble {
       padding: 10px 14px;
       font-size: 14px;
       line-height: 1.45;
       word-break: break-word;
+      position: relative;
+    }
+
+    /* 이미지 메시지 카운터 카드 */
+    .message-image-card {
+      max-width: 240px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #CBD5E1;
+      margin-top: 4px;
+    }
+
+    .message-image-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
     }
 
     /* 상대방 말풍선 */
     .chat-message-group.opponent .message-bubble {
-      background-color: #F1F5F9; /* Opponent Bubble */
+      background-color: #F1F5F9;
       color: #0F172A;
       border: 1px solid #E2E8F0;
       border-radius: 14px 14px 14px 2px;
@@ -386,7 +444,7 @@
     }
 
     .chat-message-group.me .message-bubble {
-      background-color: #2563EB; /* My Bubble (Accent Blue) */
+      background-color: #2563EB;
       color: #FFFFFF;
       border-radius: 14px 14px 2px 14px;
     }
@@ -395,6 +453,121 @@
       font-size: 11px;
       color: #94A3B8;
       white-space: nowrap;
+    }
+
+    /* 이모지 리액션 툴바 (마우스 호버 시 노출) */
+    .reaction-toolbar {
+      display: none;
+      position: absolute;
+      top: -24px;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 20px;
+      padding: 2px 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .chat-message-group.opponent .reaction-toolbar {
+      left: 0;
+    }
+
+    .chat-message-group.me .reaction-toolbar {
+      right: 0;
+    }
+
+    .chat-message-group:hover .reaction-toolbar {
+      display: flex;
+    }
+
+    .btn-reaction-item {
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 50%;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-reaction-item:hover {
+      transform: scale(1.25);
+    }
+
+    /* 이모지 리액션 배지 래퍼 */
+    .message-reactions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .reaction-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background-color: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .reaction-badge:hover {
+      border-color: #94A3B8;
+      background-color: #F8FAFC;
+    }
+
+    .reaction-badge.active {
+      border-color: #93C5FD;
+      background-color: #EFF6FF;
+      color: #1D4ED8;
+      font-weight: 600;
+    }
+
+    /* 타이핑 인디케이터 (Typing Indicator) */
+    .typing-indicator {
+      display: none; /* JS를 통해 flex로 제어 */
+      align-items: center;
+      gap: 8px;
+      padding: 6px 24px;
+      font-size: 12px;
+      color: #64748B;
+      background-color: transparent;
+      align-self: flex-start;
+      margin-bottom: -6px;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .typing-dots span {
+      width: 5px;
+      height: 5px;
+      background-color: #94A3B8;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0.4); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
     }
 
     /* Chat Input Bar */
@@ -407,6 +580,27 @@
       align-items: center;
       gap: 10px;
       flex-shrink: 0;
+    }
+
+    .btn-attach {
+      width: 44px;
+      height: 44px;
+      background-color: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      color: #475569;
+    }
+
+    .btn-attach:hover {
+      background-color: #E2E8F0;
+      color: #0F172A;
     }
 
     #input-message {
@@ -473,17 +667,10 @@
        6. Responsive Media Queries (모바일 반응형 디자인)
        ========================================================================== */
     @media (max-width: 768px) {
-      /* 햄버거 토글 버튼 노출 */
-      .btn-hamburger {
+      .btn-hamburger, .btn-close-sidebar {
         display: block;
       }
 
-      /* 사이드바 닫기 버튼 노출 */
-      .btn-close-sidebar {
-        display: block;
-      }
-
-      /* 모바일 전용 슬라이드 드로어 사이드바 */
       #sidebar {
         position: fixed;
         top: 0;
@@ -498,7 +685,6 @@
         box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
       }
 
-      /* 헤더 및 유저 프로필 축소 */
       #header {
         padding: 0 14px;
       }
@@ -508,7 +694,7 @@
       }
 
       .user-profile span {
-        display: none; /* 모바일에서 텍스트 숨기고 아바타 아이콘만 표시 */
+        display: none;
       }
 
       .btn-logout {
@@ -516,24 +702,44 @@
         font-size: 12px;
       }
 
-      /* 채팅 메시지 너비 및 간격 조정 */
       #chat-messages {
         padding: 16px 12px;
-        gap: 12px;
+        gap: 14px;
       }
 
       .chat-message-group {
-        max-width: 88%; /* 모바일에서 말풍선 너비 확대 */
+        max-width: 88%;
       }
 
       #chat-input-bar {
         height: 64px;
-        padding: 0 12px;
-        gap: 8px;
+        padding: 0 10px;
+        gap: 6px;
+      }
+
+      .btn-attach {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
       }
 
       #btn-send {
         padding: 0 14px;
+        height: 38px;
+      }
+
+      #input-message {
+        height: 38px;
+      }
+
+      /* 모바일에서는 호버가 없으므로 이모지 툴바 상시 노출 가능하도록 작게 조정 */
+      .reaction-toolbar {
+        top: -20px;
+        padding: 1px 4px;
+      }
+
+      .btn-reaction-item {
+        font-size: 12px;
       }
     }
 
@@ -621,9 +827,21 @@
         <!-- 뷰 1: 사내 채팅방 -->
         <section id="tab-chat">
           <div id="chat-messages">
-            <!-- 자바스크립트에서 메시지 목록 동적 렌더링 -->
+            <!-- 날짜 구분선 및 메시지 목록 렌더링 -->
           </div>
+
+          <!-- 타이핑 인디케이터 (상대방이 입력 중일 때 애니메이션 표시) -->
+          <div id="typing-indicator" class="typing-indicator">
+            <span class="typing-dots"><span></span><span></span><span></span></span>
+            <span id="typing-text">김철수 팀장 님이 입력 중입니다...</span>
+          </div>
+
+          <!-- 메시지 입력바 -->
           <div id="chat-input-bar">
+            <!-- 📎 이미지/파일 첨부 버튼 -->
+            <button type="button" class="btn-attach" id="btn-attach" title="이미지 첨부">📎</button>
+            <input type="file" id="file-input" accept="image/*" style="display: none;">
+
             <input type="text" id="input-message" placeholder="메시지를 입력하세요..." autocomplete="off">
             <button type="button" id="btn-send">전송</button>
           </div>
@@ -659,22 +877,28 @@
           id: 1,
           sender: '김철수 팀장',
           isMe: false,
+          type: 'text',
           text: '안녕하세요! 오늘 프로젝트 킥오프 회의는 2시입니다.',
-          time: '오전 10:15'
+          time: '오전 10:15',
+          reactions: { '👍': 2, '❤️': 1 }
         },
         {
           id: 2,
           sender: '이영희 디자이너',
           isMe: false,
+          type: 'text',
           text: '네, 디자인 시안 준비해서 참석하겠습니다!',
-          time: '오전 10:18'
+          time: '오전 10:18',
+          reactions: { '🎉': 1 }
         },
         {
           id: 3,
           sender: '게스트',
           isMe: true,
+          type: 'text',
           text: '확인했습니다. 회의실에서 뵙겠습니다.',
-          time: '오전 10:20'
+          time: '오전 10:20',
+          reactions: {}
         }
       ]
     };
@@ -701,6 +925,9 @@
     const chatMessages = document.getElementById('chat-messages');
     const inputMessage = document.getElementById('input-message');
     const btnSend = document.getElementById('btn-send');
+    const btnAttach = document.getElementById('btn-attach');
+    const fileInput = document.getElementById('file-input');
+    const typingIndicator = document.getElementById('typing-indicator');
 
     /* --------------------------------------------------------------------------
      * 3.3. 모바일 사이드바 (드로어) 토글 제어
@@ -722,38 +949,27 @@
     /* --------------------------------------------------------------------------
      * 3.4. 로그인 / 로그아웃 동작 처리
      * -------------------------------------------------------------------------- */
-    // Google 로그인 버튼 클릭 이벤트
     btnGoogleLogin.addEventListener('click', () => {
-      // TODO: Supabase 연동 - Google OAuth 로그인
-      // const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-      
-      // 임시 게스트 사용자 로그인 흉내
+      // TODO: Supabase 연동 - Google OAuth 로그인 (supabase.auth.signInWithOAuth)
       state.currentUser = {
         id: 'user_guest',
         name: '게스트',
         email: 'guest@company.com'
       };
 
-      // 화면 전환 (로그인 전 -> 로그인 후)
       viewLogin.style.display = 'none';
       viewMain.style.display = 'flex';
 
-      // 메시지 목록 렌더링 및 스크롤 이동
       loadMessages();
       renderMessages();
       scrollToBottom();
     });
 
-    // 로그아웃 버튼 클릭 이벤트
     btnLogout.addEventListener('click', () => {
-      // TODO: Supabase 연동 - 로그아웃
-      // await supabase.auth.signOut();
-
-      // 세션 상태 초기화
+      // TODO: Supabase 연동 - 로그아웃 (supabase.auth.signOut)
       state.currentUser = null;
       closeSidebar();
 
-      // 화면 전환 (로그인 후 -> 로그인 전)
       viewMain.style.display = 'none';
       viewLogin.style.display = 'flex';
       inputMessage.value = '';
@@ -764,7 +980,7 @@
      * -------------------------------------------------------------------------- */
     function switchTab(tabName) {
       state.activeTab = tabName;
-      closeSidebar(); // 모바일 메뉴 클릭 시 사이드바 자동 닫힘
+      closeSidebar();
 
       if (tabName === 'chat') {
         navChat.classList.add('active');
@@ -787,45 +1003,69 @@
      * -------------------------------------------------------------------------- */
     function loadMessages() {
       // TODO: Supabase 연동 - 이전 대화 내역 DB 조회
-      // const { data: messages, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
-      // if (messages) state.messages = messages;
-
-      // TODO: Supabase 연동 - Realtime 채널 구독 (실시간 신규 메시지 감지)
-      // supabase.channel('room-1')
-      //   .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-      //     state.messages.push(payload.new);
-      //     renderMessages();
-      //     scrollToBottom();
-      //   })
-      //   .subscribe();
+      // TODO: Supabase 연동 - Realtime 채널 구독 (supabase.channel)
     }
 
-    // 시간 포맷 생성 함수 (예: "오후 02:30")
     function getCurrentTimeString() {
       const now = new Date();
       let hours = now.getHours();
       const minutes = now.getMinutes().toString().padStart(2, '0');
       const ampm = hours >= 12 ? '오후' : '오전';
       hours = hours % 12;
-      hours = hours ? hours : 12; // 0시를 12시로 표시
+      hours = hours ? hours : 12;
       return `${ampm} ${hours.toString().padStart(2, '0')}:${minutes}`;
     }
 
-    // 채팅 메시지 UI 렌더링
+    // 이모지 리액션 토글 함수
+    function toggleReaction(msgId, emoji) {
+      const msg = state.messages.find(m => m.id === msgId);
+      if (!msg) return;
+
+      if (!msg.reactions) msg.reactions = {};
+      if (msg.reactions[emoji]) {
+        msg.reactions[emoji] += 1;
+      } else {
+        msg.reactions[emoji] = 1;
+      }
+
+      renderMessages();
+    }
+
+    // 채팅 메시지 UI 렌더링 (날짜 구분선 + 이모지 리액션 포함)
     function renderMessages() {
       chatMessages.innerHTML = '';
 
+      // 1) 날짜 구분선 (Date Divider) 렌더링
+      const dateDivider = document.createElement('div');
+      dateDivider.className = 'chat-date-divider';
+      dateDivider.innerHTML = `<span>─── 2026년 9월 10일 목요일 ───</span>`;
+      chatMessages.appendChild(dateDivider);
+
+      // 2) 메시지 목록 렌더링
       state.messages.forEach(msg => {
         const groupEl = document.createElement('div');
         groupEl.className = `chat-message-group ${msg.isMe ? 'me' : 'opponent'}`;
 
+        // 마우스 호버 이모지 리액션 툴바
+        const toolbarEl = document.createElement('div');
+        toolbarEl.className = 'reaction-toolbar';
+        ['👍', '❤️', '😂', '🎉', '🚀'].forEach(emoji => {
+          const btn = document.createElement('button');
+          btn.className = 'btn-reaction-item';
+          btn.textContent = emoji;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            toggleReaction(msg.id, emoji);
+          };
+          toolbarEl.appendChild(btn);
+        });
+
         if (!msg.isMe) {
-          // 상대방 아바타
+          // 상대방 메시지
           const avatarEl = document.createElement('div');
           avatarEl.className = 'opponent-avatar';
-          avatarEl.textContent = msg.sender.charAt(0); // 이름 첫 글자 표시
+          avatarEl.textContent = msg.sender.charAt(0);
 
-          // 내용 영역 (이름 + 말풍선/시간)
           const contentWrapper = document.createElement('div');
           contentWrapper.className = 'message-content-wrapper';
 
@@ -836,16 +1076,45 @@
           const bodyRow = document.createElement('div');
           bodyRow.className = 'message-body-row';
 
-          const bubbleEl = document.createElement('div');
-          bubbleEl.className = 'message-bubble';
-          bubbleEl.textContent = msg.text;
+          const bubbleWrapper = document.createElement('div');
+          bubbleWrapper.className = 'message-bubble-wrapper';
+
+          // 텍스트 or 이미지 말풍선
+          if (msg.type === 'image') {
+            const imgCard = document.createElement('div');
+            imgCard.className = 'message-image-card';
+            imgCard.innerHTML = `<img src="${msg.imageSrc}" alt="첨부 이미지">`;
+            bubbleWrapper.appendChild(imgCard);
+          } else {
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = 'message-bubble';
+            bubbleEl.textContent = msg.text;
+            bubbleWrapper.appendChild(bubbleEl);
+          }
+
+          // 이모지 리액션 배지 노출
+          if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+            const reactionsRow = document.createElement('div');
+            reactionsRow.className = 'message-reactions-row';
+            Object.entries(msg.reactions).forEach(([emoji, count]) => {
+              if (count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'reaction-badge active';
+                badge.textContent = `${emoji} ${count}`;
+                badge.onclick = () => toggleReaction(msg.id, emoji);
+                reactionsRow.appendChild(badge);
+              }
+            });
+            bubbleWrapper.appendChild(reactionsRow);
+          }
 
           const timeEl = document.createElement('div');
           timeEl.className = 'message-timestamp';
           timeEl.textContent = msg.time;
 
-          bodyRow.appendChild(bubbleEl);
+          bodyRow.appendChild(bubbleWrapper);
           bodyRow.appendChild(timeEl);
+          bodyRow.appendChild(toolbarEl);
 
           contentWrapper.appendChild(nameEl);
           contentWrapper.appendChild(bodyRow);
@@ -853,20 +1122,48 @@
           groupEl.appendChild(avatarEl);
           groupEl.appendChild(contentWrapper);
         } else {
-          // 내 메시지 (이름/아바타 생략)
+          // 내 메시지
           const bodyRow = document.createElement('div');
           bodyRow.className = 'message-body-row';
 
-          const bubbleEl = document.createElement('div');
-          bubbleEl.className = 'message-bubble';
-          bubbleEl.textContent = msg.text;
+          const bubbleWrapper = document.createElement('div');
+          bubbleWrapper.className = 'message-bubble-wrapper';
+
+          if (msg.type === 'image') {
+            const imgCard = document.createElement('div');
+            imgCard.className = 'message-image-card';
+            imgCard.innerHTML = `<img src="${msg.imageSrc}" alt="첨부 이미지">`;
+            bubbleWrapper.appendChild(imgCard);
+          } else {
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = 'message-bubble';
+            bubbleEl.textContent = msg.text;
+            bubbleWrapper.appendChild(bubbleEl);
+          }
+
+          // 이모지 리액션 배지 노출
+          if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+            const reactionsRow = document.createElement('div');
+            reactionsRow.className = 'message-reactions-row';
+            Object.entries(msg.reactions).forEach(([emoji, count]) => {
+              if (count > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'reaction-badge active';
+                badge.textContent = `${emoji} ${count}`;
+                badge.onclick = () => toggleReaction(msg.id, emoji);
+                reactionsRow.appendChild(badge);
+              }
+            });
+            bubbleWrapper.appendChild(reactionsRow);
+          }
 
           const timeEl = document.createElement('div');
           timeEl.className = 'message-timestamp';
           timeEl.textContent = msg.time;
 
-          bodyRow.appendChild(bubbleEl);
+          bodyRow.appendChild(bubbleWrapper);
           bodyRow.appendChild(timeEl);
+          bodyRow.appendChild(toolbarEl);
 
           groupEl.appendChild(bodyRow);
         }
@@ -875,14 +1172,15 @@
       });
     }
 
-    // 스크롤을 항상 맨 아래로 이동
     function scrollToBottom() {
       setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }, 50);
     }
 
-    // 메시지 전송 로직
+    /* --------------------------------------------------------------------------
+     * 3.7. 메시지 전송 & 상대방 자동 입력 인디케이터 시뮬레이션
+     * -------------------------------------------------------------------------- */
     function handleSendMessage() {
       const text = inputMessage.value.trim();
       if (!text) return;
@@ -891,29 +1189,86 @@
         id: Date.now(),
         sender: state.currentUser ? state.currentUser.name : '게스트',
         isMe: true,
+        type: 'text',
         text: text,
-        time: getCurrentTimeString()
+        time: getCurrentTimeString(),
+        reactions: {}
       };
 
-      // TODO: Supabase 연동 - 신규 메시지 DB INSERT
-      // await supabase.from('messages').insert([{
-      //   text: text,
-      //   user_id: state.currentUser.id,
-      //   created_at: new Date()
-      // }]);
-
-      // 인메모리 배열 추가 및 DOM 렌더링
+      // TODO: Supabase 연동 - 신규 메시지 DB INSERT (supabase.from('messages').insert)
       state.messages.push(newMessage);
       renderMessages();
       scrollToBottom();
 
-      // 입력창 초기화 및 포커스 유지
       inputMessage.value = '';
       inputMessage.focus();
+
+      // 상대방 자동 타이핑 인디케이터 시뮬레이션
+      triggerSimulatedReply();
+    }
+
+    // 파일/이미지 첨부 처리
+    btnAttach.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const imageSrc = evt.target.result;
+        const newImgMessage = {
+          id: Date.now(),
+          sender: state.currentUser ? state.currentUser.name : '게스트',
+          isMe: true,
+          type: 'image',
+          imageSrc: imageSrc,
+          time: getCurrentTimeString(),
+          reactions: {}
+        };
+
+        state.messages.push(newImgMessage);
+        renderMessages();
+        scrollToBottom();
+        fileInput.value = '';
+
+        triggerSimulatedReply();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 상대방 자동 답변 및 타이핑 인디케이터 시뮬레이션
+    function triggerSimulatedReply() {
+      setTimeout(() => {
+        // 타이핑 애니메이션 시작
+        typingIndicator.classList.add('active');
+        scrollToBottom();
+
+        setTimeout(() => {
+          // 타이핑 애니메이션 종료 후 답변 메시지 도착
+          typingIndicator.classList.remove('active');
+
+          const replyMessage = {
+            id: Date.now(),
+            sender: '김철수 팀장',
+            isMe: false,
+            type: 'text',
+            text: '네, 메시지 잘 확인했습니다! 바로 전달드릴게요 👍',
+            time: getCurrentTimeString(),
+            reactions: { '👍': 1 }
+          };
+
+          state.messages.push(replyMessage);
+          renderMessages();
+          scrollToBottom();
+        }, 2200);
+      }, 1200);
     }
 
     /* --------------------------------------------------------------------------
-     * 3.7. 이벤트 리스너 등록
+     * 3.8. 이벤트 리스너 등록
      * -------------------------------------------------------------------------- */
     btnSend.addEventListener('click', handleSendMessage);
 
