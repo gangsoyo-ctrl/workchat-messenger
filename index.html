@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>사내 실시간 메신저</title>
   <style>
     /* ==========================================================================
@@ -19,6 +19,7 @@
       background-color: #F8FAFC;
       color: #0F172A;
       height: 100vh;
+      height: 100dvh; /* Dynamic Viewport Height for Mobile Browsers */
       overflow: hidden;
       display: flex;
     }
@@ -36,11 +37,13 @@
       align-items: center;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       background-color: #F1F5F9;
       position: absolute;
       top: 0;
       left: 0;
-      z-index: 100;
+      z-index: 500;
+      padding: 20px;
     }
 
     .login-card {
@@ -48,7 +51,8 @@
       border: 1px solid #E2E8F0;
       border-radius: 12px;
       padding: 40px 32px;
-      width: 360px;
+      width: 100%;
+      max-width: 360px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
@@ -100,17 +104,38 @@
       display: none; /* JS를 통해 로그인 성공 시 flex로 변경됨 */
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
+      position: relative;
+    }
+
+    /* Sidebar Overlay (모바일 드로어 전용 배경) */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 199;
+      backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+      display: block;
     }
 
     /* Sidebar (너비 240px 고정) */
     #sidebar {
       width: 240px;
-      height: 100vh;
+      height: 100%;
       background-color: #0F172A; /* Primary Navy */
       color: #F8FAFC;
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 200;
     }
 
     .sidebar-header {
@@ -118,10 +143,20 @@
       padding: 0 20px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
       font-size: 18px;
       font-weight: 700;
       border-bottom: 1px solid #334155;
+    }
+
+    .btn-close-sidebar {
+      display: none;
+      background: none;
+      border: none;
+      color: #94A3B8;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
     }
 
     .nav-menu {
@@ -161,9 +196,10 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: 100%;
       background-color: #F8FAFC;
       overflow: hidden;
+      min-width: 0; /* Flex 넘침 방지 */
     }
 
     /* Top Header (높이 60px) */
@@ -171,29 +207,53 @@
       height: 60px;
       background-color: #FFFFFF;
       border-bottom: 1px solid #E2E8F0;
-      padding: 0 24px;
+      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    /* 햄버거 토글 버튼 (모바일 전용) */
+    .btn-hamburger {
+      display: none;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      color: #334155;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
     }
 
     .header-title {
       font-size: 18px;
       font-weight: 700;
       color: #0F172A;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-user-info {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .user-profile {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-size: 14px;
       font-weight: 600;
       color: #334155;
@@ -220,6 +280,7 @@
       color: #64748B;
       cursor: pointer;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .btn-logout:hover {
@@ -247,7 +308,7 @@
     /* Chat Messages Area */
     #chat-messages {
       flex: 1;
-      padding: 24px;
+      padding: 20px 24px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -341,10 +402,10 @@
       height: 72px;
       background-color: #FFFFFF;
       border-top: 1px solid #E2E8F0;
-      padding: 0 24px;
+      padding: 0 20px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
     }
 
@@ -354,7 +415,7 @@
       padding: 0 16px;
       border: 1px solid #CBD5E1;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 16px; /* iOS 자동 확대(Zoom) 방지 크기 */
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
@@ -375,6 +436,8 @@
       font-weight: 600;
       cursor: pointer;
       transition: background-color 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     #btn-send:hover {
@@ -392,6 +455,8 @@
       flex-direction: column;
       gap: 12px;
       color: #64748B;
+      padding: 20px;
+      text-align: center;
     }
 
     .board-empty-icon {
@@ -402,6 +467,84 @@
       font-size: 18px;
       font-weight: 600;
       color: #334155;
+    }
+
+    /* ==========================================================================
+       6. Responsive Media Queries (모바일 반응형 디자인)
+       ========================================================================== */
+    @media (max-width: 768px) {
+      /* 햄버거 토글 버튼 노출 */
+      .btn-hamburger {
+        display: block;
+      }
+
+      /* 사이드바 닫기 버튼 노출 */
+      .btn-close-sidebar {
+        display: block;
+      }
+
+      /* 모바일 전용 슬라이드 드로어 사이드바 */
+      #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        box-shadow: none;
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 25px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 헤더 및 유저 프로필 축소 */
+      #header {
+        padding: 0 14px;
+      }
+
+      .header-title {
+        font-size: 16px;
+      }
+
+      .user-profile span {
+        display: none; /* 모바일에서 텍스트 숨기고 아바타 아이콘만 표시 */
+      }
+
+      .btn-logout {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      /* 채팅 메시지 너비 및 간격 조정 */
+      #chat-messages {
+        padding: 16px 12px;
+        gap: 12px;
+      }
+
+      .chat-message-group {
+        max-width: 88%; /* 모바일에서 말풍선 너비 확대 */
+      }
+
+      #chat-input-bar {
+        height: 64px;
+        padding: 0 12px;
+        gap: 8px;
+      }
+
+      #btn-send {
+        padding: 0 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 32px 20px;
+      }
+
+      .login-title {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
@@ -435,10 +578,14 @@
        ========================================================================== -->
   <div id="view-main">
     
+    <!-- 모바일 사이드바 어두운 배경 오버레이 -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
     <!-- 좌측 사이드바 (너비 240px) -->
     <aside id="sidebar">
       <div class="sidebar-header">
         <span>🚀 WorkChat</span>
+        <button type="button" class="btn-close-sidebar" id="btn-close-sidebar">✕</button>
       </div>
       <ul class="nav-menu">
         <li class="nav-item active" id="nav-chat" onclick="switchTab('chat')">
@@ -455,7 +602,10 @@
       
       <!-- 상단 헤더 (높이 60px) -->
       <header id="header">
-        <div class="header-title" id="current-menu-title">💬 사내 채팅방</div>
+        <div class="header-left">
+          <button type="button" class="btn-hamburger" id="btn-toggle-sidebar" aria-label="메뉴 열기">☰</button>
+          <div class="header-title" id="current-menu-title">💬 사내 채팅방</div>
+        </div>
         <div class="header-user-info">
           <div class="user-profile">
             <div class="user-avatar">👤</div>
@@ -537,6 +687,11 @@
     const btnGoogleLogin = document.getElementById('btn-google-login');
     const btnLogout = document.getElementById('btn-logout');
     
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+
     const navChat = document.getElementById('nav-chat');
     const navBoard = document.getElementById('nav-board');
     const tabChat = document.getElementById('tab-chat');
@@ -548,7 +703,24 @@
     const btnSend = document.getElementById('btn-send');
 
     /* --------------------------------------------------------------------------
-     * 3.3. 로그인 / 로그아웃 동작 처리
+     * 3.3. 모바일 사이드바 (드로어) 토글 제어
+     * -------------------------------------------------------------------------- */
+    function openSidebar() {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('active');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
+    }
+
+    btnToggleSidebar.addEventListener('click', openSidebar);
+    btnCloseSidebar.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    /* --------------------------------------------------------------------------
+     * 3.4. 로그인 / 로그아웃 동작 처리
      * -------------------------------------------------------------------------- */
     // Google 로그인 버튼 클릭 이벤트
     btnGoogleLogin.addEventListener('click', () => {
@@ -579,6 +751,7 @@
 
       // 세션 상태 초기화
       state.currentUser = null;
+      closeSidebar();
 
       // 화면 전환 (로그인 후 -> 로그인 전)
       viewMain.style.display = 'none';
@@ -587,10 +760,11 @@
     });
 
     /* --------------------------------------------------------------------------
-     * 3.4. 탭 이동 (사이드바 메뉴 클릭)
+     * 3.5. 탭 이동 (사이드바 메뉴 클릭)
      * -------------------------------------------------------------------------- */
     function switchTab(tabName) {
       state.activeTab = tabName;
+      closeSidebar(); // 모바일 메뉴 클릭 시 사이드바 자동 닫힘
 
       if (tabName === 'chat') {
         navChat.classList.add('active');
@@ -609,7 +783,7 @@
     }
 
     /* --------------------------------------------------------------------------
-     * 3.5. 채팅 데이터 관리 & 렌더링
+     * 3.6. 채팅 데이터 관리 & 렌더링
      * -------------------------------------------------------------------------- */
     function loadMessages() {
       // TODO: Supabase 연동 - 이전 대화 내역 DB 조회
@@ -739,7 +913,7 @@
     }
 
     /* --------------------------------------------------------------------------
-     * 3.6. 이벤트 리스너 등록
+     * 3.7. 이벤트 리스너 등록
      * -------------------------------------------------------------------------- */
     btnSend.addEventListener('click', handleSendMessage);
 
