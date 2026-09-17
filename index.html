@@ -7,7 +7,7 @@
   
   <!-- Google Identity Services SDK (Google 로그인 연동) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Supabase JS SDK -->
+  <!-- Supabase JS SDK 2.0 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -58,7 +58,7 @@
       border-radius: 12px;
       padding: 40px 32px;
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       text-align: center;
     }
@@ -119,6 +119,27 @@
       border-color: #94A3B8;
     }
 
+    .btn-supabase-login {
+      width: 100%;
+      height: 46px;
+      background-color: #3ECF8E; /* Supabase Green */
+      border: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #FFFFFF;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-supabase-login:hover {
+      background-color: #2EBF7E;
+    }
+
     /* Client ID / Supabase 설정 토글 링크 */
     .config-toggle-link {
       margin-top: 18px;
@@ -126,6 +147,7 @@
       color: #64748B;
       text-decoration: underline;
       cursor: pointer;
+      display: inline-block;
     }
 
     .config-box {
@@ -159,6 +181,16 @@
       border-radius: 6px;
       margin-bottom: 8px;
       outline: none;
+    }
+
+    .config-info-text {
+      font-size: 11px;
+      color: #64748B;
+      word-break: break-all;
+      background: #E2E8F0;
+      padding: 6px;
+      border-radius: 4px;
+      margin-bottom: 8px;
     }
 
     .btn-save-config {
@@ -853,15 +885,23 @@
     <div class="login-card" id="login-card">
       <div class="login-logo">🏢</div>
       <h1 class="login-title">사내 메신저</h1>
-      <p class="login-subtitle">사내 구글 계정으로 간편하게 시작하세요.</p>
+      <p class="login-subtitle">사내 구글 / Supabase 계정으로 시작하세요.</p>
       
       <div class="google-signin-wrapper">
+        <!-- Supabase Google OAuth 로그인 버튼 -->
+        <button type="button" class="btn-supabase-login" id="btn-supabase-google-login">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 23C18.0751 23 23 18.0751 23 12C23 5.92487 18.0751 1 12 1C5.92487 1 1 5.92487 1 12C1 18.0751 5.92487 23 12 23Z" fill="#3ECF8E"/>
+            <path d="M13.5 6L6 15H11L10.5 18L18 9H13L13.5 6Z" fill="white"/>
+          </svg>
+          Supabase Google OAuth 로그인
+        </button>
+
         <!-- Google Identity Services 연동 버튼 컨테이너 -->
         <div id="g_id_signin_container"></div>
 
-        <!-- 커스텀/데모 구글 로그인 버튼 -->
+        <!-- 데모 구글 로그인 버튼 -->
         <button type="button" class="btn-google-login" id="btn-google-login">
-          <!-- Google Logo SVG -->
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -872,11 +912,18 @@
         </button>
       </div>
 
-      <span class="config-toggle-link" id="config-toggle">⚙️ Google OAuth / Client ID 설정</span>
+      <span class="config-toggle-link" id="config-toggle">⚙️ Supabase / Google OAuth 키 설정</span>
 
       <div class="config-box" id="config-box">
+        <label>Supabase Auth Callback URL (Google Console용)</label>
+        <div class="config-info-text">https://ihvzsbwgjcgithtgabpl.supabase.co/auth/v1/callback</div>
+
+        <label for="supabase-anon-key">Supabase Public Anon Key</label>
+        <input type="text" id="supabase-anon-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+
         <label for="google-client-id">Google Client ID (OAuth 2.0)</label>
         <input type="text" id="google-client-id" placeholder="123456789-xyz...apps.googleusercontent.com">
+
         <button type="button" class="btn-save-config" id="btn-save-config">설정 적용</button>
       </div>
     </div>
@@ -964,17 +1011,18 @@
 
 
   <!-- ==========================================================================
-       3. JavaScript (Google OAuth 연동 & 상태 관리)
+       3. JavaScript (Supabase Auth & Google OAuth 2.0 연동)
        ========================================================================== -->
   <script>
-    // TODO: Supabase 연동 - 클라이언트 초기화 (필요 시 주석 해제)
-    // const supabase = supabase.createClient('https://your-project.supabase.co', 'YOUR_ANON_KEY');
-
     /* --------------------------------------------------------------------------
-     * 3.1. 애플리케이션 상태 (In-Memory State)
+     * 3.1. Supabase & 애플리케이션 상태 (State)
      * -------------------------------------------------------------------------- */
+    const SUPABASE_URL = 'https://ihvzsbwgjcgithtgabpl.supabase.co';
+    const SUPABASE_REDIRECT_URL = 'https://gangsoyo-ctrl.github.io/workchat-messenger/';
+
     const state = {
-      currentUser: null, // 구글/게스트 로그인 유저 정보 세팅 { id, name, email, picture }
+      currentUser: null, // 로그인 성공 시 유저 정보 { id, name, email, picture }
+      supabaseAnonKey: localStorage.getItem('workchat_supabase_anon_key') || '',
       googleClientId: localStorage.getItem('workchat_google_client_id') || '',
       activeTab: 'chat', // 'chat' | 'board'
       messages: [
@@ -1008,16 +1056,55 @@
       ]
     };
 
+    // Supabase 클라이언트 세팅
+    let supabaseClient = null;
+    function initSupabase() {
+      if (state.supabaseAnonKey && typeof supabase !== 'undefined') {
+        try {
+          supabaseClient = supabase.createClient(SUPABASE_URL, state.supabaseAnonKey);
+          
+          // 기존 세션 확인 및 감지
+          supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (session && session.user) {
+              setSupabaseUser(session.user);
+            }
+          });
+
+          supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              setSupabaseUser(session.user);
+            } else if (event === 'SIGNED_OUT') {
+              state.currentUser = null;
+            }
+          });
+        } catch (e) {
+          console.warn('Supabase Client Init Error:', e);
+        }
+      }
+    }
+
+    function setSupabaseUser(user) {
+      state.currentUser = {
+        id: user.id,
+        name: user.user_metadata?.full_name || user.email.split('@')[0],
+        email: user.email,
+        picture: user.user_metadata?.avatar_url || null
+      };
+      completeLogin();
+    }
+
     /* --------------------------------------------------------------------------
      * 3.2. DOM 요소 참조
      * -------------------------------------------------------------------------- */
     const viewLogin = document.getElementById('view-login');
     const viewMain = document.getElementById('view-main');
     const btnGoogleLogin = document.getElementById('btn-google-login');
+    const btnSupabaseGoogleLogin = document.getElementById('btn-supabase-google-login');
     const btnLogout = document.getElementById('btn-logout');
     
     const configToggle = document.getElementById('config-toggle');
     const configBox = document.getElementById('config-box');
+    const supabaseAnonKeyInput = document.getElementById('supabase-anon-key');
     const googleClientIdInput = document.getElementById('google-client-id');
     const btnSaveConfig = document.getElementById('btn-save-config');
     const gIdSigninContainer = document.getElementById('g_id_signin_container');
@@ -1044,9 +1131,8 @@
     const typingIndicator = document.getElementById('typing-indicator');
 
     /* --------------------------------------------------------------------------
-     * 3.3. Google Identity Services (GIS) 및 OAuth 2.0 연동
+     * 3.3. Google Identity Services (GIS) 및 JWT 토큰 해독
      * -------------------------------------------------------------------------- */
-    // JWT 토큰 디코딩 함수 (구글 ID 토큰 해석)
     function parseJwt(token) {
       try {
         const base64Url = token.split('.')[1];
@@ -1061,11 +1147,8 @@
       }
     }
 
-    // 구글 로그인 콜백 처리 함수
     window.handleGoogleCredentialResponse = function(response) {
-      console.log("Encoded JWT ID Token: " + response.credential);
       const payload = parseJwt(response.credential);
-      
       if (payload) {
         state.currentUser = {
           id: payload.sub,
@@ -1077,10 +1160,12 @@
       }
     };
 
-    // Google Sign-In SDK 초기화
     function initGoogleSignIn() {
       if (state.googleClientId) {
         googleClientIdInput.value = state.googleClientId;
+      }
+      if (state.supabaseAnonKey) {
+        supabaseAnonKeyInput.value = state.supabaseAnonKey;
       }
 
       if (window.google && window.google.accounts) {
@@ -1093,34 +1178,39 @@
             auto_select: false
           });
 
-          // 공식 구글 로그인 버튼 생성
           if (state.googleClientId) {
             window.google.accounts.id.renderButton(
               gIdSigninContainer,
-              { theme: "outline", size: "large", width: "316", text: "continue_with" }
+              { theme: "outline", size: "large", width: "336", text: "continue_with" }
             );
           }
         } catch (err) {
           console.warn('Google Auth init warning:', err);
         }
       }
+
+      initSupabase();
     }
 
-    // Google SDK 로드 대기 및 초기화 실행
     window.addEventListener('load', () => {
       setTimeout(initGoogleSignIn, 500);
     });
 
-    // TODO: Supabase 연동 - 구글 OAuth 로그인 처리 예시
-    async function handleSupabaseGoogleLogin() {
-      // TODO: Supabase 연동
-      // if (typeof supabase !== 'undefined' && supabase.auth) {
-      //   const { data, error } = await supabase.auth.signInWithOAuth({
-      //     provider: 'google',
-      //     options: { redirectTo: window.location.href }
-      //   });
-      // }
-    }
+    // Supabase Google OAuth 버튼 처리
+    btnSupabaseGoogleLogin.addEventListener('click', async () => {
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: SUPABASE_REDIRECT_URL
+          }
+        });
+        if (error) alert('Supabase Auth 오류: ' + error.message);
+      } else {
+        alert('Supabase Anon Key를 설정창(⚙️)에서 등록하시면 Supabase 구글 로그인 기능이 켜집니다!');
+        configBox.classList.add('open');
+      }
+    });
 
     /* --------------------------------------------------------------------------
      * 3.4. 모바일 사이드바 (드로어) 토글 제어
@@ -1144,7 +1234,6 @@
      * -------------------------------------------------------------------------- */
     function completeLogin() {
       if (!state.currentUser) {
-        // 기본 게스트 프로필 생성
         state.currentUser = {
           id: 'user_guest',
           name: '게스트',
@@ -1153,7 +1242,6 @@
         };
       }
 
-      // 유저 프로필 UI 업데이트
       userDisplayName.textContent = `${state.currentUser.name} 님`;
 
       if (state.currentUser.picture) {
@@ -1162,7 +1250,6 @@
         userAvatarBox.innerHTML = '👤';
       }
 
-      // 화면 전환 (로그인 전 -> 로그인 후)
       viewLogin.style.display = 'none';
       viewMain.style.display = 'flex';
 
@@ -1171,13 +1258,10 @@
       scrollToBottom();
     }
 
-    // 빠른 구글/게스트 로그인 버튼 클릭
     btnGoogleLogin.addEventListener('click', () => {
-      // Google One Tap 또는 공식 팝업 시도
       if (window.google && window.google.accounts && state.googleClientId) {
         window.google.accounts.id.prompt();
       } else {
-        // Client ID 미설정 시 데모 구글 사용자 세션으로 즉시 로그인
         state.currentUser = {
           id: 'user_google_demo',
           name: '구글 사용자',
@@ -1188,9 +1272,11 @@
       }
     });
 
-    // 로그아웃 처리
-    btnLogout.addEventListener('click', () => {
-      // TODO: Supabase 연동 - 로그아웃 (supabase.auth.signOut)
+    btnLogout.addEventListener('click', async () => {
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+
       if (window.google && window.google.accounts && window.google.accounts.id) {
         window.google.accounts.id.disableAutoSelect();
       }
@@ -1203,16 +1289,21 @@
       inputMessage.value = '';
     });
 
-    // Client ID 설정 토글
     configToggle.addEventListener('click', () => {
       configBox.classList.toggle('open');
     });
 
     btnSaveConfig.addEventListener('click', () => {
-      const val = googleClientIdInput.value.trim();
-      state.googleClientId = val;
-      localStorage.setItem('workchat_google_client_id', val);
-      alert('Google Client ID가 저장되었습니다!');
+      const gVal = googleClientIdInput.value.trim();
+      const sVal = supabaseAnonKeyInput.value.trim();
+
+      state.googleClientId = gVal;
+      state.supabaseAnonKey = sVal;
+
+      localStorage.setItem('workchat_google_client_id', gVal);
+      localStorage.setItem('workchat_supabase_anon_key', sVal);
+
+      alert('설정이 저장되었습니다!');
       initGoogleSignIn();
     });
 
@@ -1257,7 +1348,6 @@
       return `${ampm} ${hours.toString().padStart(2, '0')}:${minutes}`;
     }
 
-    // 이모지 리액션 토글 함수
     function toggleReaction(msgId, emoji) {
       const msg = state.messages.find(m => m.id === msgId);
       if (!msg) return;
@@ -1272,22 +1362,18 @@
       renderMessages();
     }
 
-    // 채팅 메시지 UI 렌더링 (구글 프로필 아바타 포함)
     function renderMessages() {
       chatMessages.innerHTML = '';
 
-      // 날짜 구분선 (Date Divider) 렌더링
       const dateDivider = document.createElement('div');
       dateDivider.className = 'chat-date-divider';
       dateDivider.innerHTML = `<span>─── 2026년 9월 10일 목요일 ───</span>`;
       chatMessages.appendChild(dateDivider);
 
-      // 메시지 목록 렌더링
       state.messages.forEach(msg => {
         const groupEl = document.createElement('div');
         groupEl.className = `chat-message-group ${msg.isMe ? 'me' : 'opponent'}`;
 
-        // 마우스 호버 이모지 리액션 툴바
         const toolbarEl = document.createElement('div');
         toolbarEl.className = 'reaction-toolbar';
         ['👍', '❤️', '😂', '🎉', '🚀'].forEach(emoji => {
@@ -1302,7 +1388,6 @@
         });
 
         if (!msg.isMe) {
-          // 상대방 메시지
           const avatarEl = document.createElement('div');
           avatarEl.className = 'opponent-avatar';
           avatarEl.textContent = msg.sender.charAt(0);
@@ -1361,7 +1446,6 @@
           groupEl.appendChild(avatarEl);
           groupEl.appendChild(contentWrapper);
         } else {
-          // 내 메시지
           const bodyRow = document.createElement('div');
           bodyRow.className = 'message-body-row';
 
@@ -1446,7 +1530,6 @@
       triggerSimulatedReply();
     }
 
-    // 파일/이미지 첨부 처리
     btnAttach.addEventListener('click', () => {
       fileInput.click();
     });
@@ -1479,7 +1562,6 @@
       reader.readAsDataURL(file);
     });
 
-    // 상대방 자동 답변 및 타이핑 인디케이터 시뮬레이션
     function triggerSimulatedReply() {
       setTimeout(() => {
         typingIndicator.classList.add('active');
