@@ -1380,8 +1380,6 @@
 
       inputMessage.value = '';
       inputMessage.focus();
-
-      triggerSimulatedReply();
     }
 
     btnAttach.addEventListener('click', () => {
@@ -1410,36 +1408,9 @@
         renderMessages();
         scrollToBottom();
         fileInput.value = '';
-
-        triggerSimulatedReply();
       };
       reader.readAsDataURL(file);
     });
-
-    function triggerSimulatedReply() {
-      setTimeout(() => {
-        typingIndicator.classList.add('active');
-        scrollToBottom();
-
-        setTimeout(() => {
-          typingIndicator.classList.remove('active');
-
-          const replyMessage = {
-            id: Date.now(),
-            sender: '김철수 팀장',
-            isMe: false,
-            type: 'text',
-            text: '네, 메시지 잘 확인했습니다! 바로 전달드릴게요 👍',
-            time: getCurrentTimeString(),
-            reactions: { '👍': 1 }
-          };
-
-          state.messages.push(replyMessage);
-          renderMessages();
-          scrollToBottom();
-        }, 2200);
-      }, 1200);
-    }
 
     /* --------------------------------------------------------------------------
      * 3.9. 이벤트 리스너 등록
