@@ -910,35 +910,7 @@
     const state = {
       currentUser: null, // 로그인 성공 시 유저 정보 { id, name, email, picture }
       activeTab: 'chat', // 'chat' | 'board'
-      messages: [
-        {
-          id: 1,
-          sender: '김철수 팀장',
-          isMe: false,
-          type: 'text',
-          text: '안녕하세요! 오늘 프로젝트 킥오프 회의는 2시입니다.',
-          time: '오전 10:15',
-          reactions: { '👍': 2, '❤️': 1 }
-        },
-        {
-          id: 2,
-          sender: '이영희 디자이너',
-          isMe: false,
-          type: 'text',
-          text: '네, 디자인 시안 준비해서 참석하겠습니다!',
-          time: '오전 10:18',
-          reactions: { '🎉': 1 }
-        },
-        {
-          id: 3,
-          sender: '게스트',
-          isMe: true,
-          type: 'text',
-          text: '확인했습니다. 회의실에서 뵙겠습니다.',
-          time: '오전 10:20',
-          reactions: {}
-        }
-      ]
+      messages: []
     };
 
     /* --------------------------------------------------------------------------
@@ -1118,8 +1090,8 @@
     btnCloseSidebar.addEventListener('click', closeSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
 
-    const STORAGE_KEY_MESSAGES = 'workchat_messages_v2';
-    const STORAGE_KEY_USER = 'workchat_current_user_v2';
+    const STORAGE_KEY_MESSAGES = 'workchat_messages_v3';
+    const STORAGE_KEY_USER = 'workchat_current_user_v3';
 
     function saveUserSession(user) {
       try {
@@ -1231,8 +1203,10 @@
       try {
         const saved = localStorage.getItem(STORAGE_KEY_MESSAGES);
         if (saved) {
-          state.messages = JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          state.messages = parsed.filter(m => m.sender !== '김철수 팀장' && m.sender !== '이영희 디자이너');
         } else {
+          state.messages = [];
           saveMessages();
         }
       } catch (e) {
