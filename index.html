@@ -1118,17 +1118,41 @@
     btnCloseSidebar.addEventListener('click', closeSidebar);
     sidebarOverlay.addEventListener('click', closeSidebar);
 
+    const STORAGE_KEY_MESSAGES = 'workchat_messages_v2';
+    const STORAGE_KEY_USER = 'workchat_current_user_v2';
+
+    function saveUserSession(user) {
+      try {
+        if (user) {
+          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+        } else {
+          localStorage.removeItem(STORAGE_KEY_USER);
+        }
+      } catch (e) {}
+    }
+
+    function loadUserSession() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_USER);
+        return saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     /* --------------------------------------------------------------------------
      * 3.5. 로그인 성공 / 로그아웃 처리
      * -------------------------------------------------------------------------- */
     function completeLogin() {
       if (!state.currentUser) {
-        state.currentUser = {
+        state.currentUser = loadUserSession() || {
           id: 'user_guest',
           name: '게스트',
           email: 'guest@company.com',
           picture: null
         };
+      } else {
+        saveUserSession(state.currentUser);
       }
 
       userDisplayName.textContent = `${state.currentUser.name} 님`;
@@ -1149,6 +1173,7 @@
 
     btnLogout.addEventListener('click', () => {
       state.currentUser = null;
+      saveUserSession(null);
       closeSidebar();
 
       viewMain.style.display = 'none';
@@ -1156,9 +1181,16 @@
       inputMessage.value = '';
     });
 
-    // 페이지 로드 시 구글 OAuth 리디렉션 토큰 체크
+    // 페이지 로드 시 구글 OAuth 리디렉션 토큰 체크 및 저장된 로그인 세션 복원
     window.addEventListener('load', () => {
-      checkOAuthRedirectToken();
+      const isRedirected = checkOAuthRedirectToken();
+      if (!isRedirected) {
+        const savedUser = loadUserSession();
+        if (savedUser) {
+          state.currentUser = savedUser;
+          completeLogin();
+        }
+      }
     });
 
     /* --------------------------------------------------------------------------
@@ -1185,11 +1217,27 @@
     }
 
     /* --------------------------------------------------------------------------
-     * 3.7. 채팅 데이터 관리 & 렌더링
+     * 3.7. 채팅 데이터 관리 & 렌더링 (localStorage 영구 저장 지원)
      * -------------------------------------------------------------------------- */
+    function saveMessages() {
+      try {
+        localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(state.messages));
+      } catch (e) {
+        console.error('Failed to save messages to localStorage:', e);
+      }
+    }
+
     function loadMessages() {
-      // TODO: Supabase 연동 - 이전 대화 내역 DB 조회
-      // TODO: Supabase 연동 - Realtime 채널 구독 (supabase.channel)
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_MESSAGES);
+        if (saved) {
+          state.messages = JSON.parse(saved);
+        } else {
+          saveMessages();
+        }
+      } catch (e) {
+        console.error('Failed to load messages from localStorage:', e);
+      }
     }
 
     function getCurrentTimeString() {
@@ -1213,6 +1261,7 @@
         msg.reactions[emoji] = 1;
       }
 
+      saveMessages();
       renderMessages();
     }
 
@@ -1373,8 +1422,8 @@
         reactions: {}
       };
 
-      // TODO: Supabase 연동 - 신규 메시지 DB INSERT (supabase.from('messages').insert)
       state.messages.push(newMessage);
+      saveMessages();
       renderMessages();
       scrollToBottom();
 
@@ -1405,6 +1454,7 @@
         };
 
         state.messages.push(newImgMessage);
+        saveMessages();
         renderMessages();
         scrollToBottom();
         fileInput.value = '';
