@@ -174,7 +174,7 @@
 
     .config-box input {
       width: 100%;
-      height: 34px;
+      height: 36px;
       padding: 0 10px;
       font-size: 12px;
       border: 1px solid #CBD5E1;
@@ -195,14 +195,19 @@
 
     .btn-save-config {
       width: 100%;
-      height: 32px;
-      background-color: #334155;
+      height: 34px;
+      background-color: #2563EB;
       color: #FFFFFF;
       border: none;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-save-config:hover {
+      background-color: #1D4ED8;
     }
 
     /* ==========================================================================
@@ -924,7 +929,7 @@
         <label for="google-client-id">Google Client ID (OAuth 2.0)</label>
         <input type="text" id="google-client-id" placeholder="123456789-xyz...apps.googleusercontent.com">
 
-        <button type="button" class="btn-save-config" id="btn-save-config">설정 적용</button>
+        <button type="button" class="btn-save-config" id="btn-save-config">설정 적용 & 로그인</button>
       </div>
     </div>
   </div>
@@ -1086,9 +1091,9 @@
     function setSupabaseUser(user) {
       state.currentUser = {
         id: user.id,
-        name: user.user_metadata?.full_name || user.email.split('@')[0],
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0],
         email: user.email,
-        picture: user.user_metadata?.avatar_url || null
+        picture: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
       };
       completeLogin();
     }
@@ -1196,8 +1201,8 @@
       setTimeout(initGoogleSignIn, 500);
     });
 
-    // Supabase Google OAuth 버튼 처리
-    btnSupabaseGoogleLogin.addEventListener('click', async () => {
+    // Supabase Google OAuth 실행 함수
+    async function triggerSupabaseAuth() {
       if (supabaseClient) {
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
@@ -1207,10 +1212,14 @@
         });
         if (error) alert('Supabase Auth 오류: ' + error.message);
       } else {
-        alert('Supabase Anon Key를 설정창(⚙️)에서 등록하시면 Supabase 구글 로그인 기능이 켜집니다!');
+        alert('Supabase Anon Key를 입력창에 붙여넣고 [설정 적용 & 로그인]을 눌러주세요!');
         configBox.classList.add('open');
+        supabaseAnonKeyInput.focus();
       }
-    });
+    }
+
+    // Supabase Google OAuth 로그인 버튼
+    btnSupabaseGoogleLogin.addEventListener('click', triggerSupabaseAuth);
 
     /* --------------------------------------------------------------------------
      * 3.4. 모바일 사이드바 (드로어) 토글 제어
@@ -1258,8 +1267,11 @@
       scrollToBottom();
     }
 
+    // 빠른 로그인 버튼 (Supabase 또는 구글 GIS 실행)
     btnGoogleLogin.addEventListener('click', () => {
-      if (window.google && window.google.accounts && state.googleClientId) {
+      if (supabaseClient) {
+        triggerSupabaseAuth();
+      } else if (window.google && window.google.accounts && state.googleClientId) {
         window.google.accounts.id.prompt();
       } else {
         state.currentUser = {
@@ -1297,14 +1309,24 @@
       const gVal = googleClientIdInput.value.trim();
       const sVal = supabaseAnonKeyInput.value.trim();
 
+      if (!sVal && !gVal) {
+        alert('Supabase Public Anon Key 또는 Google Client ID를 입력해주세요!');
+        return;
+      }
+
       state.googleClientId = gVal;
       state.supabaseAnonKey = sVal;
 
       localStorage.setItem('workchat_google_client_id', gVal);
       localStorage.setItem('workchat_supabase_anon_key', sVal);
 
-      alert('설정이 저장되었습니다!');
       initGoogleSignIn();
+
+      if (sVal) {
+        triggerSupabaseAuth();
+      } else {
+        alert('설정이 저장되었습니다!');
+      }
     });
 
     /* --------------------------------------------------------------------------
