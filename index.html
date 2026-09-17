@@ -948,7 +948,12 @@
      * 3.1. Supabase & 애플리케이션 상태 (State)
      * -------------------------------------------------------------------------- */
     const SUPABASE_PROJECT_URL = 'https://ihvzsbwgjcgithtgabpl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_jUz9vTmQFC2swpcEYkZN6Q_B8CdpnVs';
     const SUPABASE_REDIRECT_URL = 'https://gangsoyo-ctrl.github.io/workchat-messenger/';
+
+    const supabaseClient = (window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY)
+      : null;
 
     const state = {
       currentUser: null, // 로그인 성공 시 유저 정보 { id, name, email, picture }
@@ -1057,17 +1062,51 @@
       }
     }
 
-    // Supabase 구글 OAuth 로그인 실행 (동적 Redirect URL 지원)
-    function triggerGoogleOAuth() {
+    // Supabase 구글 OAuth 로그인 실행 (Supabase Client SDK 및 동적 Redirect URL 지원)
+    async function triggerGoogleOAuth() {
       const currentOriginPath = window.location.origin + window.location.pathname;
-      const oauthUrl = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(currentOriginPath)}`;
-      window.location.href = oauthUrl;
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: currentOriginPath
+            }
+          });
+          if (error) {
+            console.warn('Supabase SDK signInWithOAuth error:', error);
+            window.location.href = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(currentOriginPath)}`;
+          }
+        } catch (e) {
+          window.location.href = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(currentOriginPath)}`;
+        }
+      } else {
+        window.location.href = `${SUPABASE_PROJECT_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(currentOriginPath)}`;
+      }
     }
 
     // OAuth 리디렉션 후 URL Hash 및 Search 감지 (Access Token / Error 처리)
     function checkOAuthRedirectToken() {
       const hash = window.location.hash;
       const search = window.location.search;
+
+      // 0. Supabase JS SDK Auth state change 구독
+      if (supabaseClient && supabaseClient.auth) {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+          if (session && session.user) {
+            const user = session.user;
+            const meta = user.user_metadata || {};
+            state.currentUser = {
+              id: user.id,
+              name: meta.full_name || meta.name || user.email.split('@')[0],
+              email: user.email,
+              picture: meta.avatar_url || meta.picture || null
+            };
+            history.replaceState(null, '', window.location.pathname);
+            completeLogin();
+          }
+        });
+      }
 
       // 1. URL Hash에서 access_token 추출 (#access_token=...)
       if (hash && hash.includes('access_token')) {
